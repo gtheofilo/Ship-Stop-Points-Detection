@@ -14,7 +14,8 @@ In order for the algorithm to work a DataFrame with the following columns should
 
 The algoirthm runs by calling the following Python function:
 
-    stop_points_based_segmentation(dataframe, identifier='mmsi', speed_threshold=2., distance_threshold=5.0, time_threshold=300.)
+    trajectories = stop_points_based_segmentation(dataframe, identifier='mmsi', speed_threshold=2., distance_threshold=5.0, time_threshold=300.)
+    # returns a given DataFrame eniriched with a traj_id column 
 
  1. speed_threshold is given km/h 
  2. distance_threshold in km
