@@ -20,8 +20,11 @@ The algoirthm runs by calling the following Python function:
  2. distance_threshold in km
  3. time_threshold in the same units as the "timestamp" column of the
     provided DataFrame
+    
+The default thresholds are based on the movement of passenger and cruise ships through the Aegean Sea. I advice you to experiment with these values and keep the ones that produce the best results for you as the heavily depend on the type of the vessels that you are analysing and the area that they are moving.
 
 The below image contains the meaningful port to port trajectories from a cruise ship sailing through Greece.
+
 ![alt text](https://i.imgur.com/Gav3mF6.png)
 
 
