@@ -1,4 +1,4 @@
-def side_search(partitioned_trajectory, center_point, distance_threshold, time_threshold, speed_threshold):
+def side_search(partitioned_trajectory, center_point, distance_threshold):
     """
     Used for calculating the left and right limits of a trajectory given a center point and the needed conditions.
     """
@@ -17,6 +17,7 @@ def side_search(partitioned_trajectory, center_point, distance_threshold, time_t
             & (copy['d_time'] <= 3600)]['d_distance'].idxmax()
     except ValueError:
         return None
+
 
     
 def stop_points_based_segmentation(trajectories, identifier='second_pass', speed_threshold=2.0, distance_threshold=5.0, time_threshold=300):
@@ -76,57 +77,48 @@ def stop_points_based_segmentation(trajectories, identifier='second_pass', speed
         grp_copy = sdf.copy(deep=False).reset_index(drop=True).sort_values(by='timestamp', ascending=True)
         
         # Stop points for each group
-        stop_points = []    
+        stop_points = [0]    
         # Candidates points
         slow_speed_points = grp_copy[grp_copy['calc_speed'] <= speed_threshold].index
-        
         candidates_index = 0
+        
         while not slow_speed_points.empty and candidates_index < len(slow_speed_points):
             center = slow_speed_points[candidates_index]
             center_row = grp_copy.iloc[center]
             
             # Left Search
-            li = side_search(grp_copy.iloc[:center], center_row, distance_threshold, time_threshold, speed_threshold)
+            li = side_search(grp_copy.iloc[stop_points[-1]:center], center_row, distance_threshold)
             # Right Search
-            ri = side_search(grp_copy.iloc[center + 1:], center_row, distance_threshold, time_threshold, speed_threshold)
+            ri = side_search(grp_copy.iloc[center + 1:], center_row, distance_threshold)
                  
-            # If there is no right or left point closer than the given distance_threshold, moves to
-            # the next candidate stop point
-            
+            # If there is no right or left point closer that satisfies the side_search conditions
             if li is None or ri is None:
                 candidates_index = candidates_index + 1
                 continue
-                
 
-        
+                
             left_limit = grp_copy.iloc[li]
             right_limit = grp_copy.iloc[ri]
-
-            
             if (right_limit['timestamp'] - left_limit['timestamp']) >= time_threshold:  
                 stop_points.append(center)
-                
                 try:
                     # If we are not at the end of the data stream
                     _next = grp_copy.iloc[ri + 1:][grp_copy['calc_speed'] > speed_threshold]['timestamp'].idxmin()
                     slow_speed_points = grp_copy.iloc[_next:][grp_copy['calc_speed'] <= speed_threshold].index
                     candidates_index = 0
-                    
                 except ValueError:
                     break
             else:
                 candidates_index = candidates_index + 1
                 
-            
-        
-        
+
+        stop_points.pop(0)
         # Mark stop points
         if len(stop_points) == 0:
             continue
         grp_copy.loc[stop_points, 'stop'] = 'Yes'
 
         # Segment trips based on stop - points index position
-        
         if grp_copy.iloc[:stop_points[0]][grp_copy['calc_speed'] > speed_threshold]['timestamp'].empty:
             last_check = 0
         else:
@@ -140,18 +132,15 @@ def stop_points_based_segmentation(trajectories, identifier='second_pass', speed
             except ValueError:
                 last_check = ind + 1
 
-        
         for i in range(0,len(sdfs)):
             if sdfs[i].empty:
                 continue
             sdfs[i]['traj_id'] = traj_id_
             traj_id_ = traj_id_ + 1
     
-    
         temp.extend(sdfs) 
     
     return pd.concat(temp)
-
   
 def _distance_difference(point1, point2):
     return _haversine_np(point1['lon'], point1['lat'], point2['lon'], point2['lat'])
