@@ -26,6 +26,7 @@ The default thresholds are based on the movement of passenger and cruise ships t
 
 * The algorithm doesn't keep the continious stationary points after a stop. When a ship is stationary at a port it continues to produce AIS signals. These signals are not contained at the final trajectories so that each trajectory has a starting point(beginning of the trip), the intermidiate points(sailing) and the final stop point.
 *  Depending on the health status, the uniformity of the given data and the goal of your data analysis, you may perform a cleaning procedure at the produced trajectories like removing those with less than 10 points etc.
+*  For a Dataset of 450.000 rows and 35 unique MMSI, the algorithm produces 4132 trajectories in 109 seconds.
 
 The below image contains the meaningful port to port trajectories from a cruise ship sailing through Greece.
 
