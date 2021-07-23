@@ -1,7 +1,7 @@
 
 # Ship-Stop-Points-Detection
 
-A Pandas based Algorithm for Ship Stop Points Detection in AIS Data
+A Pandas based Algorithm for Ship Stop Points Detection from AIS Data
 
 Given a dataset of spatiotemporal data, the provided algorithm can create meaningful ship trajectories starting and ending at a stop point. The nature of each stop point varies depending on the vessel type. For a passenger or a cruise a ship a stop point could be a port or a mid - sea stop due to anomalous events. The same applies for fishing boats with the difference that a mid - sea stop could describe a specific fishing spot.
 
