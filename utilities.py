@@ -1,4 +1,6 @@
 import pandas as pd
+import numpy as np
+
 
 def _time_difference(timestamp1, timestamp2):
     return abs(timestamp2 - timestamp1)
