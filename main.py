@@ -20,11 +20,16 @@ def side_search(partitioned_trajectory, center_point, distance_threshold):
 
 
     
-def stop_points_based_segmentation(trajectories, identifier='second_pass', speed_threshold=2.0, distance_threshold=5.0, time_threshold=300):
+def stop_points_based_segmentation(trajectories, identifier='id', speed_threshold=2.0, distance_threshold=5.0, time_threshold=300):
     """
     Given a DataFrame with lon, lat, timestamp, speed and an identifier column where each row describes a time ordered
     gps point, 'stop_points_based_segmentation' calculates the stop points and segments the DataFrame into individual
-    trips with a beginning and end.
+    trips with a beginning and an end.
+    
+    The metric system of speed and distance threshold depends on your data. For example, if you provide the speed given in the 
+    trajectories dataframe in km/h then the threshold should be set accordingly. The same applies for distance.
+    
+    The timestamp column of the dataframe should be in unix epoch (seconds).
     
     Step 1:
     For each unique identifier(could be a ship's MMSI or generally a number that describes unique moving objects) the
@@ -67,7 +72,7 @@ def stop_points_based_segmentation(trajectories, identifier='second_pass', speed
                                     
         distance_threshold {number} -- Radius to search around each candidate stop point
         
-        time_threshold {number} -- The minimum time to move through the given radius(distance_threshold)
+        time_threshold {number} -- The minimum time to move through the given radius(distance_threshold) in seconds.
     """
     
     temp = []
@@ -79,7 +84,7 @@ def stop_points_based_segmentation(trajectories, identifier='second_pass', speed
         # Stop points for each group
         stop_points = [0]    
         # Candidates points
-        slow_speed_points = grp_copy[grp_copy['calc_speed'] <= speed_threshold].index
+        slow_speed_points = grp_copy[grp_copy['speed'] <= speed_threshold].index
         candidates_index = 0
         
         while not slow_speed_points.empty and candidates_index < len(slow_speed_points):
@@ -103,8 +108,8 @@ def stop_points_based_segmentation(trajectories, identifier='second_pass', speed
                 stop_points.append(center)
                 try:
                     # If we are not at the end of the data stream
-                    _next = grp_copy.iloc[ri + 1:][grp_copy['calc_speed'] > speed_threshold]['timestamp'].idxmin()
-                    slow_speed_points = grp_copy.iloc[_next:][grp_copy['calc_speed'] <= speed_threshold].index
+                    _next = grp_copy.iloc[ri + 1:][grp_copy['speed'] > speed_threshold]['timestamp'].idxmin()
+                    slow_speed_points = grp_copy.iloc[_next:][grp_copy['speed'] <= speed_threshold].index
                     candidates_index = 0
                 except ValueError:
                     break
@@ -119,16 +124,16 @@ def stop_points_based_segmentation(trajectories, identifier='second_pass', speed
         grp_copy.loc[stop_points, 'stop'] = 'Yes'
 
         # Segment trips based on stop - points index position
-        if grp_copy.iloc[:stop_points[0]][grp_copy['calc_speed'] > speed_threshold]['timestamp'].empty:
+        if grp_copy.iloc[:stop_points[0]][grp_copy['speed'] > speed_threshold]['timestamp'].empty:
             last_check = 0
         else:
-            last_check = grp_copy.iloc[:stop_points[0]][grp_copy['calc_speed'] > speed_threshold]['timestamp'].idxmin()
+            last_check = grp_copy.iloc[:stop_points[0]][grp_copy['speed'] > speed_threshold]['timestamp'].idxmin()
             
         sdfs = []
         for ind in stop_points:
             sdfs.append(grp_copy.iloc[last_check:ind + 1])
             try:
-                last_check = grp_copy.iloc[ind + 1:][grp_copy['calc_speed'] > speed_threshold]['timestamp'].idxmin()
+                last_check = grp_copy.iloc[ind + 1:][grp_copy['speed'] > speed_threshold]['timestamp'].idxmin()
             except ValueError:
                 last_check = ind + 1
 
