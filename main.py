@@ -1,3 +1,6 @@
+import numpy as np
+import pandas as pd
+
 def side_search(partitioned_trajectory, center_point, distance_threshold):
     """
     Used for calculating the left and right limits of a trajectory given a center point and the needed conditions.
